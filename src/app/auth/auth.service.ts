@@ -78,7 +78,6 @@ export class AuthService {
       );
     }
 
-    // compare passwords
     const isValid = await verifyPassword(password, exists.password.hash);
     if (!isValid) {
       throw new BadRequestException(
@@ -87,9 +86,11 @@ export class AuthService {
         }),
       );
     }
+
     const payload = { id: exists.id, sid: Date.now() };
     const token = await this.jwtService.signAsync(payload);
     response.cookie(COOKIE_KEY, token, COOKIE_OPTION);
+
     return responseObject({
       message: 'User Login Successfully',
     });
