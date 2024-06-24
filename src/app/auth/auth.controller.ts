@@ -1,6 +1,6 @@
 import { Body, Controller, Post, Req, Res } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
-import { LoginDto, RegisterDto } from './auth.dto';
+import { CheckUserDto, LoginDto, RegisterDto } from './auth.dto';
 import { AuthService } from './auth.service';
 import { Request, Response } from 'express';
 
@@ -10,6 +10,10 @@ export class AuthController {
     readonly prismaService: PrismaService,
     readonly authService: AuthService,
   ) {}
+  @Post('check-user')
+  async checkUser(@Body() body: CheckUserDto) {
+    return this.authService.checkUserIdentity(body)
+  }
   @Post('register')
   async register(
     @Body() body: RegisterDto,

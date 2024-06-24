@@ -12,6 +12,7 @@ import { COOKIE_KEY } from 'src/config/constants';
 import { COOKIE_OPTION } from 'src/config/constants';
 import { JwtService } from '@nestjs/jwt';
 import { user } from '@prisma/client';
+import { CheckUserType } from './auth.types';
 
 @Injectable()
 export class AuthService {
@@ -20,7 +21,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async checkUser({ email, username }: { email: string; username: string }) {
+  async checkUser({ email, username }: Partial<CheckUserType>) {
     return await this.prismaService.user.findFirst({
       where: {
         OR: [{ username }, { email }],
@@ -28,6 +29,28 @@ export class AuthService {
       include: {
         password: true,
       },
+    });
+  }
+
+  async checkUserIdentity(identity: Partial<CheckUserType>) {
+    if (!identity.email && !identity.username) {
+      throw new BadRequestException(
+        responseObject({
+          message: 'Username or Email is Required',
+        }),
+      );
+    }
+    const user = await this.checkUser(identity);
+    if (user) {
+      throw new ConflictException(
+        responseObject({
+          message: `${user.email == identity.email ? 'Email' : 'Username'} is already taken`,
+        }),
+      );
+    }
+
+    return responseObject({
+      message: `${identity.email || identity.username} Is Available`,
     });
   }
 
