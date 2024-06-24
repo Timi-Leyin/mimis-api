@@ -15,7 +15,7 @@ export const saveAvatar = async (data: string, name: string) => {
   const filename = path.join($path, `${name}-${Date.now()}.${ext}`);
   writeFileSync(filename, data);
   const uploader = await uploadFile(filename);
-  // await rm(filename);
+  await rm(filename);
   return uploader;
 };
 
