@@ -3,10 +3,8 @@ import {
   CanActivate,
   ExecutionContext,
   UnauthorizedException,
-  Request,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Observable } from 'rxjs';
 import { COOKIE_KEY } from 'src/config/constants';
 import responseObject from 'src/helpers/response-object';
 import { PrismaService } from 'src/prisma.service';
@@ -26,7 +24,7 @@ export class AuthGuard implements CanActivate {
     const response = new UnauthorizedException(
       responseObject({ message: 'Unauthorized' }),
     );
-    
+
     if (!cookies || !sid) {
       throw response;
     }
@@ -45,6 +43,13 @@ export class AuthGuard implements CanActivate {
     const user = await this.prismaService.user.findUnique({
       where: {
         id: decoded.id,
+      },
+      include: {
+        avatar: {
+          select: {
+            src: true,
+          },
+        },
       },
     });
     if (!user) {

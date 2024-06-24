@@ -11,9 +11,12 @@ import { Response } from 'express';
 import { COOKIE_KEY } from 'src/config/constants';
 import { COOKIE_OPTION } from 'src/config/constants';
 import { JwtService } from '@nestjs/jwt';
-import { user } from '@prisma/client';
+import { file, user } from '@prisma/client';
 import { CheckUserType } from './auth.types';
-
+import { getAvatar } from 'src/helpers/get-avatar';
+import { uploadFile } from 'src/helpers/uploader';
+import * as fs from 'fs';
+import { UploadApiResponse } from 'cloudinary';
 @Injectable()
 export class AuthService {
   constructor(
@@ -54,12 +57,31 @@ export class AuthService {
     });
   }
 
-  async createUser({ password, email, username }): Promise<user> {
+  async createUser({
+    password,
+    email,
+    username,
+    avatar,
+  }: {
+    password: string;
+    email: string;
+    username: string;
+    avatar?: UploadApiResponse;
+  }): Promise<user> {
     const $password = await hashPassword(password);
     const user = await this.prismaService.user.create({
       data: {
         email,
         username,
+        avatar: avatar
+          ? {
+              create: {
+                src: avatar.secure_url,
+                type: avatar.resource_type,
+                provider: 'cloudinary',
+              },
+            }
+          : undefined,
         password: {
           create: {
             hash: $password,
@@ -82,7 +104,8 @@ export class AuthService {
         }),
       );
     }
-    const user = await this.createUser({ username, email, password });
+    const avatar = await getAvatar(username);
+    const user = await this.createUser({ username, email, password, avatar });
     const payload = { id: user.id, sid: Date.now() };
     const token = await this.jwtService.signAsync(payload);
     response.cookie(COOKIE_KEY, token, COOKIE_OPTION);
