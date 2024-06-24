@@ -1,6 +1,6 @@
 import { Body, Controller, Post, Req, Res } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
-import { RegisterDto } from './auth.dto';
+import { LoginDto, RegisterDto } from './auth.dto';
 import { AuthService } from './auth.service';
 import { Request, Response } from 'express';
 
@@ -16,5 +16,13 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ) {
     return this.authService.register(body, response);
+  }
+
+  @Post('login')
+  async login(
+    @Body() body: LoginDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    return this.authService.login(body, response);
   }
 }
