@@ -1,14 +1,18 @@
 import { IsEmail, IsString, IsStrongPassword } from 'class-validator';
 
 export class LoginDto {
+  @IsEmail()
   email: string;
+  @IsString({
+    message: 'Password is Required',
+  })
   password: string;
 }
 export class RegisterDto {
   @IsEmail()
   email: string;
   @IsString({
-    message:"Username is Required"
+    message: 'Username is Required',
   })
   username: string;
   @IsStrongPassword({
