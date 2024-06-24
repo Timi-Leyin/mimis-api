@@ -22,25 +22,24 @@ export class AuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const { cookies } = request;
     const sid = cookies[COOKIE_KEY];
+
+    const response = new UnauthorizedException(
+      responseObject({ message: 'Unauthorized' }),
+    );
+    
     if (!cookies || !sid) {
-      throw new UnauthorizedException(
-        responseObject({ message: 'Unauthorized' }),
-      );
+      throw response;
     }
 
     let decoded;
     try {
       decoded = this.jwtService.verify(sid);
     } catch (error) {
-      throw new UnauthorizedException(
-        responseObject({ message: 'Unauthorized' }),
-      );
+      throw response;
     }
 
     if (!decoded || !decoded.id) {
-      throw new UnauthorizedException(
-        responseObject({ message: 'Unauthorized' }),
-      );
+      throw response;
     }
 
     const user = await this.prismaService.user.findUnique({
@@ -49,9 +48,7 @@ export class AuthGuard implements CanActivate {
       },
     });
     if (!user) {
-      throw new UnauthorizedException(
-        responseObject({ message: 'Unauthorized' }),
-      );
+      throw response;
     }
 
     request.user = user;
